@@ -1105,6 +1105,15 @@
             loading.classList.add('active');
             composeBtn.disabled = true;
 
+            // 暂停画布上的预览视频，避免播放声音
+            let previewVideoPaused = false;
+            if (videoLayer && videoLayer.videoElement) {
+                if (!videoLayer.videoElement.paused) {
+                    videoLayer.videoElement.pause();
+                    previewVideoPaused = true;
+                }
+            }
+
             try {
                 const canvas = document.createElement('canvas');
                 const wrapperRect = canvasWrapper.getBoundingClientRect();
@@ -1267,6 +1276,11 @@
                         a.download = fileName;
                         a.click();
                         
+                        // 确保预览视频保持暂停状态
+                        if (videoLayer && videoLayer.videoElement) {
+                            videoLayer.videoElement.pause();
+                        }
+                        
                         loading.classList.remove('active');
                         composeBtn.disabled = false;
                         alert('视频合成完成！');
@@ -1320,6 +1334,12 @@
             } catch (error) {
                 console.error('合成视频失败:', error);
                 alert('合成视频失败，请重试。错误: ' + error.message);
+                
+                // 确保预览视频保持暂停状态
+                if (videoLayer && videoLayer.videoElement) {
+                    videoLayer.videoElement.pause();
+                }
+                
                 loading.classList.remove('active');
                 composeBtn.disabled = false;
             }
