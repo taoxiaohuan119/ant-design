@@ -617,6 +617,76 @@
         .tab-content.active {
             display: block;
         }
+
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            background: #202124;
+            color: #fff;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            max-width: 400px;
+            opacity: 0;
+            transform: translateX(400px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            color: #4285f4;
+        }
+
+        .toast-content {
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .toast-close {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 480px) {
+            .toast {
+                right: 12px;
+                left: 12px;
+                min-width: auto;
+                max-width: none;
+                transform: translateY(-100px);
+            }
+
+            .toast.show {
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -707,6 +777,23 @@
         <p style="margin-top: 12px; color: #5f6368; font-size: 14px;">正在合成视频，请稍候...</p>
     </div>
 
+    <!-- Toast 提示 -->
+    <div class="toast" id="toast">
+        <div class="toast-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+        </div>
+        <div class="toast-content" id="toastContent">拖拽或缩放视频到适合的位置吧</div>
+        <div class="toast-close" onclick="hideToast()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </div>
+    </div>
+
     <script>
         let backgroundImage = null;
         let backgroundImageElement = null;
@@ -736,6 +823,26 @@
 
         function saveHistoryCharacters(history) {
             localStorage.setItem('characterHistory', JSON.stringify(history));
+        }
+
+        // Toast 提示函数
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastContent = document.getElementById('toastContent');
+            if (toastContent) {
+                toastContent.textContent = message;
+            }
+            toast.classList.add('show');
+            
+            // 5秒后自动隐藏
+            setTimeout(() => {
+                hideToast();
+            }, 5000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('show');
         }
 
         // 背景图片上传
@@ -813,6 +920,8 @@
                 
                 video.onloadedmetadata = function() {
                     addVideoLayer();
+                    // 显示提示toast
+                    showToast('拖拽或缩放视频到适合的位置吧');
                 };
             }
         });
