@@ -83,6 +83,11 @@
             border-color: #dadce0;
         }
 
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
         .canvas-container {
             position: relative;
             width: 100%;
@@ -126,6 +131,29 @@
             display: block;
         }
 
+        .video-controls {
+            position: absolute;
+            top: -32px;
+            left: 0;
+            background: rgba(0,0,0,0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .video-controls button {
+            background: transparent;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+        }
+
         .resize-handle {
             position: absolute;
             width: 16px;
@@ -150,6 +178,29 @@
             max-height: 200px;
             object-fit: contain;
             display: block;
+        }
+
+        .character-controls {
+            position: absolute;
+            top: -32px;
+            left: 0;
+            background: rgba(0,0,0,0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .character-controls button {
+            background: transparent;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
         }
 
         .character-text-overlay {
@@ -238,7 +289,7 @@
             background: #fff;
             padding: 24px;
             border-radius: 8px;
-            max-width: 480px;
+            max-width: 600px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
@@ -310,10 +361,69 @@
             margin-top: 24px;
         }
 
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            padding: 8px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .history-item:hover {
+            background: #f8f9fa;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .history-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-item-text {
+            font-size: 14px;
+            color: #202124;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-item-time {
+            font-size: 12px;
+            color: #80868b;
+        }
+
         .loading {
             display: none;
-            text-align: center;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.95);
             padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            z-index: 2000;
+            text-align: center;
         }
 
         .loading.active {
@@ -333,15 +443,6 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        .result-container {
-            display: none;
-            margin-top: 24px;
-        }
-
-        .result-container.active {
-            display: block;
         }
 
         input[type="file"] {
@@ -367,6 +468,34 @@
             background: #1967d2;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #dadce0;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: #5f6368;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: #4285f4;
+            border-bottom-color: #4285f4;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -380,6 +509,12 @@
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
                 创建角色
+            </button>
+            <button class="btn btn-secondary" onclick="openHistoryModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                历史角色
             </button>
             <input type="file" id="videoInput" accept="video/webm" style="display: none;">
             <button class="btn btn-secondary" onclick="document.getElementById('videoInput').click()">
@@ -419,10 +554,10 @@
         </div>
     </div>
 
-    <!-- 创建角色弹窗 -->
+    <!-- 创建/编辑角色弹窗 -->
     <div class="modal" id="characterModal">
         <div class="modal-content">
-            <div class="modal-header">创建角色</div>
+            <div class="modal-header" id="characterModalTitle">创建角色</div>
             <div class="form-group">
                 <label>上传角色图片</label>
                 <label for="characterImageInput" class="file-input-label">
@@ -442,7 +577,17 @@
             </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeCharacterModal()">取消</button>
-                <button class="btn" onclick="addCharacter()">确定</button>
+                <button class="btn" onclick="saveCharacter()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 历史角色弹窗 -->
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <div class="modal-header">历史角色</div>
+            <div class="history-list" id="historyList">
+                <div class="empty-state">暂无历史角色</div>
             </div>
         </div>
     </div>
@@ -458,6 +603,7 @@
         let backgroundImageElement = null;
         let videoFile = null;
         let videoElement = null;
+        let videoMuted = true;
         let characters = [];
         let videoLayer = null;
         let isDragging = false;
@@ -466,10 +612,21 @@
         let resizeStartSize = { width: 0, height: 0 };
         let resizeStartPos = { x: 0, y: 0 };
         let currentDraggingElement = null;
+        let editingCharacterId = null;
 
         const canvasWrapper = document.getElementById('canvasWrapper');
         const uploadOverlay = document.getElementById('uploadOverlay');
         const backgroundInput = document.getElementById('backgroundInput');
+
+        // 加载历史角色
+        function loadHistoryCharacters() {
+            const history = localStorage.getItem('characterHistory');
+            return history ? JSON.parse(history) : [];
+        }
+
+        function saveHistoryCharacters(history) {
+            localStorage.setItem('characterHistory', JSON.stringify(history));
+        }
 
         // 背景图片上传
         backgroundInput.addEventListener('change', handleBackgroundUpload);
@@ -542,6 +699,7 @@
                 video.src = URL.createObjectURL(file);
                 video.preload = 'metadata';
                 videoElement = video;
+                videoMuted = true;
                 
                 video.onloadedmetadata = function() {
                     addVideoLayer();
@@ -555,7 +713,6 @@
                 return;
             }
 
-            // 移除旧的视频层
             if (videoLayer) {
                 videoLayer.remove();
             }
@@ -565,7 +722,6 @@
             videoLayerDiv.style.width = '300px';
             videoLayerDiv.style.height = '200px';
             
-            // 计算居中位置
             const wrapperRect = canvasWrapper.getBoundingClientRect();
             const imgRect = backgroundImageElement.getBoundingClientRect();
             const centerX = (imgRect.left - wrapperRect.left) + imgRect.width / 2;
@@ -574,12 +730,25 @@
             videoLayerDiv.style.left = (centerX - 150) + 'px';
             videoLayerDiv.style.top = (centerY - 100) + 'px';
 
+            const videoControls = document.createElement('div');
+            videoControls.className = 'video-controls';
+            
+            const muteBtn = document.createElement('button');
+            muteBtn.innerHTML = videoMuted ? 
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>' :
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>';
+            muteBtn.onclick = (e) => {
+                e.stopPropagation();
+                toggleVideoMute();
+            };
+            videoControls.appendChild(muteBtn);
+
             const video = document.createElement('video');
             video.src = videoElement.src;
             video.controls = false;
             video.autoplay = true;
             video.loop = true;
-            video.muted = true;
+            video.muted = videoMuted;
             video.style.width = '100%';
             video.style.height = '100%';
             video.style.objectFit = 'contain';
@@ -587,26 +756,58 @@
             const resizeHandle = document.createElement('div');
             resizeHandle.className = 'resize-handle';
 
+            videoLayerDiv.appendChild(videoControls);
             videoLayerDiv.appendChild(video);
             videoLayerDiv.appendChild(resizeHandle);
             canvasWrapper.appendChild(videoLayerDiv);
 
             videoLayer = videoLayerDiv;
+            videoLayer.videoElement = video;
+            videoLayer.muteBtn = muteBtn;
 
             videoLayerDiv.addEventListener('mousedown', startDrag);
             resizeHandle.addEventListener('mousedown', startResize);
         }
 
+        function toggleVideoMute() {
+            if (!videoLayer || !videoLayer.videoElement) return;
+            videoMuted = !videoMuted;
+            videoLayer.videoElement.muted = videoMuted;
+            videoLayer.muteBtn.innerHTML = videoMuted ? 
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>' :
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>';
+        }
+
         // 角色弹窗
-        function openCharacterModal() {
-            document.getElementById('characterModal').classList.add('active');
-            document.getElementById('characterImageInput').value = '';
-            document.getElementById('characterTextInput').value = '';
-            document.getElementById('characterImagePreview').classList.remove('active');
+        function openCharacterModal(characterId = null) {
+            editingCharacterId = characterId;
+            const modal = document.getElementById('characterModal');
+            const title = document.getElementById('characterModalTitle');
+            const imageInput = document.getElementById('characterImageInput');
+            const textInput = document.getElementById('characterTextInput');
+            const preview = document.getElementById('characterImagePreview');
+            
+            if (characterId) {
+                const character = characters.find(c => c.id === characterId);
+                if (character) {
+                    title.textContent = '编辑角色';
+                    textInput.value = character.text;
+                    preview.src = character.image;
+                    preview.classList.add('active');
+                }
+            } else {
+                title.textContent = '创建角色';
+                textInput.value = '';
+                preview.classList.remove('active');
+            }
+            
+            imageInput.value = '';
+            modal.classList.add('active');
         }
 
         function closeCharacterModal() {
             document.getElementById('characterModal').classList.remove('active');
+            editingCharacterId = null;
         }
 
         document.getElementById('characterImageInput').addEventListener('change', function(e) {
@@ -622,11 +823,12 @@
             }
         });
 
-        function addCharacter() {
+        function saveCharacter() {
             const imageInput = document.getElementById('characterImageInput');
             const textInput = document.getElementById('characterTextInput');
+            const preview = document.getElementById('characterImagePreview');
             
-            if (!imageInput.files[0]) {
+            if (!preview.classList.contains('active') && !editingCharacterId) {
                 alert('请上传角色图片');
                 return;
             }
@@ -641,24 +843,68 @@
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
+            const imageSrc = preview.classList.contains('active') ? preview.src : 
+                           (editingCharacterId ? characters.find(c => c.id === editingCharacterId).image : null);
+            
+            if (!imageSrc) {
+                alert('请上传角色图片');
+                return;
+            }
+
+            if (editingCharacterId) {
+                // 编辑现有角色
+                const character = characters.find(c => c.id === editingCharacterId);
+                if (character) {
+                    character.image = imageSrc;
+                    character.text = textInput.value.trim();
+                    updateCharacterLayer(character);
+                }
+            } else {
+                // 创建新角色
                 const character = {
                     id: Date.now(),
-                    image: e.target.result,
-                    text: textInput.value.trim()
+                    image: imageSrc,
+                    text: textInput.value.trim(),
+                    createdAt: new Date().toISOString()
                 };
                 characters.push(character);
                 addCharacterLayer(character);
-                closeCharacterModal();
-            };
-            reader.readAsDataURL(imageInput.files[0]);
+                
+                // 保存到历史
+                const history = loadHistoryCharacters();
+                history.unshift(character);
+                if (history.length > 50) history.pop(); // 最多保存50个
+                saveHistoryCharacters(history);
+            }
+            
+            closeCharacterModal();
+        }
+
+        function updateCharacterLayer(character) {
+            const layer = canvasWrapper.querySelector(`[data-character-id="${character.id}"]`);
+            if (layer) {
+                const img = layer.querySelector('img');
+                const textOverlay = layer.querySelector('.character-text-overlay');
+                if (img) img.src = character.image;
+                if (textOverlay) textOverlay.textContent = character.text;
+            }
         }
 
         function addCharacterLayer(character) {
             const characterLayer = document.createElement('div');
             characterLayer.className = 'character-layer';
             characterLayer.dataset.characterId = character.id;
+            
+            const controls = document.createElement('div');
+            controls.className = 'character-controls';
+            
+            const editBtn = document.createElement('button');
+            editBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
+            editBtn.onclick = (e) => {
+                e.stopPropagation();
+                openCharacterModal(character.id);
+            };
+            controls.appendChild(editBtn);
             
             const img = document.createElement('img');
             img.src = character.image;
@@ -670,10 +916,10 @@
             textOverlay.className = 'character-text-overlay';
             textOverlay.textContent = character.text;
             
+            characterLayer.appendChild(controls);
             characterLayer.appendChild(img);
             characterLayer.appendChild(textOverlay);
             
-            // 计算初始位置（背景图片中心偏右）
             const wrapperRect = canvasWrapper.getBoundingClientRect();
             const imgRect = backgroundImageElement.getBoundingClientRect();
             const centerX = (imgRect.left - wrapperRect.left) + imgRect.width / 2;
@@ -686,10 +932,64 @@
             canvasWrapper.appendChild(characterLayer);
         }
 
+        // 历史角色
+        function openHistoryModal() {
+            const modal = document.getElementById('historyModal');
+            const list = document.getElementById('historyList');
+            const history = loadHistoryCharacters();
+            
+            if (history.length === 0) {
+                list.innerHTML = '<div class="empty-state">暂无历史角色</div>';
+            } else {
+                list.innerHTML = history.map(char => `
+                    <div class="history-item">
+                        <img src="${char.image}" alt="角色">
+                        <div class="history-item-info">
+                            <div class="history-item-text">${char.text}</div>
+                            <div class="history-item-time">${new Date(char.createdAt).toLocaleString('zh-CN')}</div>
+                        </div>
+                        <button class="btn btn-small" onclick="useHistoryCharacter(${char.id})">使用</button>
+                        <button class="btn btn-small btn-secondary" onclick="downloadCharacter(${char.id})">下载</button>
+                    </div>
+                `).join('');
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function useHistoryCharacter(id) {
+            const history = loadHistoryCharacters();
+            const character = history.find(c => c.id === id);
+            if (character && backgroundImageElement) {
+                const newCharacter = {
+                    ...character,
+                    id: Date.now() // 新ID，避免冲突
+                };
+                characters.push(newCharacter);
+                addCharacterLayer(newCharacter);
+                document.getElementById('historyModal').classList.remove('active');
+            } else if (!backgroundImageElement) {
+                alert('请先上传背景图片');
+            }
+        }
+
+        function downloadCharacter(id) {
+            const history = loadHistoryCharacters();
+            const character = history.find(c => c.id === id);
+            if (character) {
+                const link = document.createElement('a');
+                link.href = character.image;
+                link.download = `character-${id}.png`;
+                link.click();
+            }
+        }
+
         // 拖拽功能
         function startDrag(e) {
             if (e.target.classList.contains('resize-handle')) return;
             if (e.target.classList.contains('character-text-overlay')) return;
+            if (e.target.closest('.character-controls')) return;
+            if (e.target.closest('.video-controls')) return;
             
             isDragging = true;
             currentDraggingElement = e.currentTarget;
@@ -710,7 +1010,6 @@
             let x = e.clientX - wrapperRect.left - dragOffset.x;
             let y = e.clientY - wrapperRect.top - dragOffset.y;
             
-            // 限制在画布内
             const elementWidth = currentDraggingElement.offsetWidth;
             const elementHeight = currentDraggingElement.offsetHeight;
             
@@ -758,7 +1057,7 @@
             document.removeEventListener('mouseup', stopResize);
         }
 
-        // 合成视频
+        // 合成视频为MP4
         async function composeVideo() {
             if (!backgroundImageElement || !videoElement) {
                 alert('请先上传背景图片和视频');
@@ -779,10 +1078,8 @@
                 canvas.height = imgRect.height;
                 const ctx = canvas.getContext('2d');
 
-                // 绘制背景
                 ctx.drawImage(backgroundImageElement, 0, 0, canvas.width, canvas.height);
 
-                // 获取视频层位置和尺寸
                 if (videoLayer) {
                     const videoLayerRect = videoLayer.getBoundingClientRect();
                     const videoX = videoLayerRect.left - imgRect.left;
@@ -790,11 +1087,10 @@
                     const videoWidth = videoLayerRect.width;
                     const videoHeight = videoLayerRect.height;
 
-                    // 创建视频元素用于录制
                     const video = document.createElement('video');
                     video.src = videoElement.src;
                     video.crossOrigin = 'anonymous';
-                    video.muted = true;
+                    video.muted = videoMuted;
                     video.loop = true;
                     await new Promise((resolve) => {
                         video.onloadedmetadata = () => {
@@ -803,7 +1099,6 @@
                         };
                     });
 
-                    // 绘制角色
                     const characterLayers = canvasWrapper.querySelectorAll('.character-layer');
                     characterLayers.forEach(layer => {
                         const layerRect = layer.getBoundingClientRect();
@@ -815,24 +1110,45 @@
                         }
                     });
 
-                    // 使用 MediaRecorder 录制
+                    // 尝试使用MP4编码
+                    let mimeType = 'video/mp4';
+                    if (!MediaRecorder.isTypeSupported('video/mp4')) {
+                        // 如果不支持mp4，尝试其他格式
+                        if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+                            mimeType = 'video/webm;codecs=vp9';
+                        } else if (MediaRecorder.isTypeSupported('video/webm')) {
+                            mimeType = 'video/webm';
+                        } else {
+                            mimeType = 'video/webm;codecs=vp8';
+                        }
+                    }
+
                     const stream = canvas.captureStream(30);
-                    const recorder = new MediaRecorder(stream, {
-                        mimeType: 'video/webm;codecs=vp9'
-                    });
+                    const recorder = new MediaRecorder(stream, { mimeType });
 
                     const chunks = [];
                     recorder.ondataavailable = (e) => {
                         if (e.data.size > 0) chunks.push(e.data);
                     };
 
-                    recorder.onstop = () => {
-                        const blob = new Blob(chunks, { type: 'video/webm' });
-                        const url = URL.createObjectURL(blob);
+                    recorder.onstop = async () => {
+                        const blob = new Blob(chunks, { type: mimeType });
                         
+                        // 如果浏览器不支持MP4，使用ffmpeg.wasm转换（需要引入库）
+                        // 这里先直接下载，如果用户需要MP4，可以后续添加转换功能
+                        let finalBlob = blob;
+                        let fileName = 'composed-video.mp4';
+                        
+                        if (mimeType !== 'video/mp4') {
+                            fileName = 'composed-video.webm';
+                            // 提示用户：浏览器不支持直接导出MP4，已导出为WebM格式
+                            // 可以使用在线工具或ffmpeg转换为MP4
+                        }
+                        
+                        const url = URL.createObjectURL(finalBlob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = 'composed-video.webm';
+                        a.download = fileName;
                         a.click();
                         
                         loading.classList.remove('active');
@@ -840,12 +1156,10 @@
                         alert('视频合成完成！');
                     };
 
-                    // 绘制视频帧
                     const drawFrame = () => {
                         ctx.clearRect(0, 0, canvas.width, canvas.height);
                         ctx.drawImage(backgroundImageElement, 0, 0, canvas.width, canvas.height);
                         
-                        // 绘制角色
                         characterLayers.forEach(layer => {
                             const layerRect = layer.getBoundingClientRect();
                             const img = layer.querySelector('img');
@@ -879,9 +1193,11 @@
         }
 
         document.getElementById('characterModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeCharacterModal();
-            }
+            if (e.target === this) closeCharacterModal();
+        });
+
+        document.getElementById('historyModal').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
         });
     </script>
 </body>
