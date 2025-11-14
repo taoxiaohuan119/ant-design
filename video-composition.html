@@ -894,11 +894,7 @@
                 toastContent.textContent = message;
             }
             toast.classList.add('show');
-            
-            // 5秒后自动隐藏
-            setTimeout(() => {
-                hideToast();
-            }, 5000);
+            // 不自动隐藏，需要用户手动关闭
         }
 
         function hideToast() {
