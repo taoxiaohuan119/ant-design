@@ -14,164 +14,39 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif;
             background: #f5f5f5;
-            min-height: 100vh;
-            padding: 24px;
-            color: #202124;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-            padding: 32px;
-        }
-
-        h1 {
-            font-size: 24px;
-            font-weight: 400;
-            color: #202124;
-            margin-bottom: 32px;
-            letter-spacing: -0.5px;
-        }
-
-        .section {
-            margin-bottom: 48px;
-        }
-
-        .section-title {
-            font-size: 16px;
-            font-weight: 500;
-            color: #202124;
-            margin-bottom: 16px;
-        }
-
-        .section-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-
-        @media (max-width: 768px) {
-            .section-content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .upload-area {
-            border: 1px solid #dadce0;
-            border-radius: 8px;
-            padding: 24px;
-            text-align: center;
-            transition: all 0.2s;
-            cursor: pointer;
-            background: #fafafa;
-        }
-
-        .upload-area:hover {
-            border-color: #4285f4;
-            background: #f8f9fa;
-        }
-
-        .upload-area.dragover {
-            border-color: #4285f4;
-            background: #e8f0fe;
-        }
-
-        .upload-icon {
-            width: 48px;
-            height: 48px;
-            margin: 0 auto 12px;
-            color: #5f6368;
-        }
-
-        .upload-text {
-            font-size: 14px;
-            color: #5f6368;
-            margin-bottom: 8px;
-        }
-
-        .upload-hint {
-            font-size: 12px;
-            color: #80868b;
-        }
-
-        .preview-container {
-            margin-top: 16px;
-            border-radius: 8px;
+            height: 100vh;
             overflow: hidden;
-            display: none;
+            color: #202124;
         }
 
-        .preview-container.active {
-            display: block;
-        }
-
-        .preview-container img {
-            width: 100%;
-            max-height: 300px;
-            object-fit: contain;
-            background: #f5f5f5;
-        }
-
-        .characters-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 16px;
-            margin-top: 16px;
-        }
-
-        .character-card {
-            border: 1px solid #dadce0;
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
+        .toolbar {
+            height: 56px;
             background: #fff;
-            transition: all 0.2s;
+            border-bottom: 1px solid #dadce0;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            z-index: 100;
             position: relative;
         }
 
-        .character-card:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        .toolbar-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #202124;
+            margin-right: 24px;
         }
 
-        .character-card img {
-            width: 100%;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin-bottom: 8px;
-        }
-
-        .character-text {
-            font-size: 12px;
-            color: #5f6368;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            margin-bottom: 8px;
-        }
-
-        .btn-remove {
-            width: 100%;
-            padding: 6px;
-            font-size: 12px;
-            color: #ea4335;
-            background: transparent;
-            border: 1px solid #dadce0;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-remove:hover {
-            background: #fce8e6;
-            border-color: #ea4335;
+        .toolbar-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-left: auto;
         }
 
         .btn {
-            padding: 10px 24px;
+            padding: 8px 16px;
             font-size: 14px;
             border: none;
             border-radius: 4px;
@@ -180,6 +55,9 @@
             font-weight: 500;
             background: #4285f4;
             color: #fff;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .btn:hover {
@@ -208,29 +86,28 @@
         .canvas-container {
             position: relative;
             width: 100%;
-            min-height: 500px;
-            border: 1px solid #dadce0;
-            border-radius: 8px;
-            background: #000;
-            overflow: hidden;
-            margin-bottom: 16px;
+            height: calc(100vh - 56px);
+            background: #e8eaed;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
         }
 
         .canvas-wrapper {
             position: relative;
-            width: 100%;
-            height: 100%;
-            min-height: 500px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 100%;
+            max-height: 100%;
         }
 
         .background-image {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 1;
+            display: block;
+            max-width: 100%;
+            max-height: calc(100vh - 104px);
+            object-fit: contain;
         }
 
         .video-layer {
@@ -239,6 +116,7 @@
             cursor: move;
             z-index: 2;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            background: transparent;
         }
 
         .video-layer video {
@@ -261,6 +139,34 @@
             z-index: 3;
         }
 
+        .character-layer {
+            position: absolute;
+            z-index: 3;
+            cursor: move;
+        }
+
+        .character-layer img {
+            max-width: 200px;
+            max-height: 200px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .character-text-overlay {
+            position: absolute;
+            bottom: -30px;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .empty-state {
             text-align: center;
             color: #80868b;
@@ -268,18 +174,47 @@
             font-size: 14px;
         }
 
-        .file-info {
-            margin-top: 12px;
-            padding: 12px;
-            background: #e8f0fe;
-            border-radius: 4px;
-            font-size: 13px;
-            color: #1967d2;
-            display: none;
+        .upload-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border: 2px dashed #dadce0;
+            border-radius: 8px;
+            transition: all 0.2s;
         }
 
-        .file-info.active {
-            display: block;
+        .upload-overlay.dragover {
+            border-color: #4285f4;
+            background: rgba(232,240,254,0.95);
+        }
+
+        .upload-content {
+            text-align: center;
+        }
+
+        .upload-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            color: #5f6368;
+        }
+
+        .upload-text {
+            font-size: 16px;
+            color: #202124;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 14px;
+            color: #80868b;
         }
 
         .modal {
@@ -375,13 +310,6 @@
             margin-top: 24px;
         }
 
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 16px;
-        }
-
         .loading {
             display: none;
             text-align: center;
@@ -416,132 +344,107 @@
             display: block;
         }
 
-        .result-container h3 {
-            font-size: 18px;
-            font-weight: 400;
-            margin-bottom: 16px;
-            color: #202124;
-        }
-
-        .result-container video {
-            width: 100%;
-            max-width: 800px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-
         input[type="file"] {
             display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .file-input-label:hover {
+            background: #e8eaed;
+            border-color: #4285f4;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>视频合成工具</h1>
-        
-        <!-- 第一步和第二步：背景图片和角色 -->
-        <div class="section">
-            <div class="section-title">1. 上传背景图片</div>
-            <div class="section-content">
-                <div>
-                    <div class="upload-area" id="backgroundUploadArea" onclick="document.getElementById('backgroundInput').click()">
-                        <div class="upload-icon">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                <polyline points="21 15 16 10 5 21"></polyline>
-                            </svg>
-                        </div>
-                        <div class="upload-text">点击或拖拽上传 PPT 背景图片</div>
-                        <div class="upload-hint">支持 JPG、PNG 格式</div>
+    <!-- 顶部工具栏 -->
+    <div class="toolbar">
+        <div class="toolbar-title">视频合成工具</div>
+        <div class="toolbar-actions">
+            <button class="btn" onclick="openCharacterModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                创建角色
+            </button>
+            <input type="file" id="videoInput" accept="video/webm" style="display: none;">
+            <button class="btn btn-secondary" onclick="document.getElementById('videoInput').click()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                </svg>
+                上传视频
+            </button>
+            <button class="btn" onclick="composeVideo()" id="composeBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                合成视频
+            </button>
+        </div>
+    </div>
+
+    <!-- 画板容器 -->
+    <div class="canvas-container">
+        <div class="canvas-wrapper" id="canvasWrapper">
+            <!-- 上传背景覆盖层 -->
+            <div class="upload-overlay" id="uploadOverlay" onclick="document.getElementById('backgroundInput').click()">
+                <div class="upload-content">
+                    <div class="upload-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
                     </div>
-                    <input type="file" id="backgroundInput" accept="image/*">
-                    <div class="preview-container" id="backgroundPreview">
-                        <img id="backgroundPreviewImg" alt="背景预览">
-                    </div>
-                    <div class="file-info" id="backgroundInfo"></div>
-                </div>
-
-                <div>
-                    <div class="section-title" style="margin-top: 0;">2. 创建数字人角色</div>
-                    <button class="btn" onclick="openCharacterModal()">+ 添加角色</button>
-                    <div class="characters-grid" id="charactersContainer">
-                        <div class="empty-state" style="grid-column: 1/-1; padding: 20px;">暂无角色</div>
-                    </div>
+                    <div class="upload-text">点击或拖拽上传背景图片</div>
+                    <div class="upload-hint">支持 JPG、PNG 格式</div>
                 </div>
             </div>
+            <input type="file" id="backgroundInput" accept="image/*">
         </div>
+    </div>
 
-        <!-- 第三步：上传视频 -->
-        <div class="section">
-            <div class="section-title">3. 上传视频</div>
-            <div class="upload-area" id="videoUploadArea" onclick="document.getElementById('videoInput').click()">
-                <div class="upload-icon">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
-                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-                    </svg>
-                </div>
-                <div class="upload-text">点击或拖拽上传 WebM 格式视频</div>
-                <div class="upload-hint">支持透明背景视频</div>
+    <!-- 创建角色弹窗 -->
+    <div class="modal" id="characterModal">
+        <div class="modal-content">
+            <div class="modal-header">创建角色</div>
+            <div class="form-group">
+                <label>上传角色图片</label>
+                <label for="characterImageInput" class="file-input-label">选择图片</label>
+                <input type="file" id="characterImageInput" accept="image/*">
+                <img id="characterImagePreview" class="preview-image" alt="预览">
             </div>
-            <input type="file" id="videoInput" accept="video/webm">
-            <div class="file-info" id="videoInfo"></div>
-        </div>
-
-        <!-- 第四步：预览合成 -->
-        <div class="section">
-            <div class="section-title">4. 预览合成</div>
-            <div class="canvas-container">
-                <div class="canvas-wrapper" id="canvasWrapper">
-                    <div class="empty-state">请先上传背景图片、添加角色和视频</div>
-                </div>
+            <div class="form-group">
+                <label>角色台词内容</label>
+                <textarea id="characterTextInput" placeholder="请输入角色的台词内容"></textarea>
             </div>
-            <div class="action-buttons">
-                <button class="btn btn-secondary" onclick="resetCanvas()">重置</button>
-            </div>
-        </div>
-
-        <!-- 第五步：合成视频 -->
-        <div class="section">
-            <div class="section-title">5. 合成视频</div>
-            <button class="btn" onclick="composeVideo()" id="composeBtn">开始合成</button>
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p style="margin-top: 12px; color: #5f6368; font-size: 14px;">正在合成视频，请稍候...</p>
-            </div>
-            <div class="result-container" id="resultContainer">
-                <h3>合成完成</h3>
-                <video id="resultVideo" controls></video>
-                <div>
-                    <a id="downloadLink" class="btn" download="composed-video.webm" style="text-decoration: none; display: inline-block;">下载视频</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- 添加角色弹窗 -->
-        <div class="modal" id="characterModal">
-            <div class="modal-content">
-                <div class="modal-header">创建数字人角色</div>
-                <div class="form-group">
-                    <label>上传角色图片</label>
-                    <input type="file" id="characterImageInput" accept="image/*">
-                    <img id="characterImagePreview" class="preview-image" alt="预览">
-                </div>
-                <div class="form-group">
-                    <label>角色台词内容</label>
-                    <textarea id="characterTextInput" placeholder="请输入角色的台词内容"></textarea>
-                </div>
-                <div class="modal-actions">
-                    <button class="btn btn-secondary" onclick="closeCharacterModal()">取消</button>
-                    <button class="btn" onclick="addCharacter()">确定</button>
-                </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeCharacterModal()">取消</button>
+                <button class="btn" onclick="addCharacter()">确定</button>
             </div>
         </div>
     </div>
 
+    <!-- 加载提示 -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p style="margin-top: 12px; color: #5f6368; font-size: 14px;">正在合成视频，请稍候...</p>
+    </div>
+
     <script>
         let backgroundImage = null;
+        let backgroundImageElement = null;
         let videoFile = null;
         let videoElement = null;
         let characters = [];
@@ -551,85 +454,72 @@
         let dragOffset = { x: 0, y: 0 };
         let resizeStartSize = { width: 0, height: 0 };
         let resizeStartPos = { x: 0, y: 0 };
+        let currentDraggingElement = null;
+
+        const canvasWrapper = document.getElementById('canvasWrapper');
+        const uploadOverlay = document.getElementById('uploadOverlay');
+        const backgroundInput = document.getElementById('backgroundInput');
 
         // 背景图片上传
-        const backgroundInput = document.getElementById('backgroundInput');
-        const backgroundUploadArea = document.getElementById('backgroundUploadArea');
-        const backgroundPreview = document.getElementById('backgroundPreview');
-        const backgroundPreviewImg = document.getElementById('backgroundPreviewImg');
-        const backgroundInfo = document.getElementById('backgroundInfo');
-
         backgroundInput.addEventListener('change', handleBackgroundUpload);
-        
-        backgroundUploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            backgroundUploadArea.classList.add('dragover');
-        });
 
-        backgroundUploadArea.addEventListener('dragleave', () => {
-            backgroundUploadArea.classList.remove('dragover');
-        });
-
-        backgroundUploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            backgroundUploadArea.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0 && files[0].type.startsWith('image/')) {
-                handleFile(files[0], handleBackgroundUpload);
+        canvasWrapper.addEventListener('dragover', (e) => {
+            if (uploadOverlay.style.display !== 'none') {
+                e.preventDefault();
+                uploadOverlay.classList.add('dragover');
             }
         });
 
-        function handleFile(file, callback) {
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.files = dataTransfer.files;
-            callback({ target: input });
-        }
+        canvasWrapper.addEventListener('dragleave', () => {
+            uploadOverlay.classList.remove('dragover');
+        });
+
+        canvasWrapper.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadOverlay.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                const file = files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    loadBackgroundImage(event.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
         function handleBackgroundUpload(e) {
             const file = e.target.files[0];
             if (file && file.type.startsWith('image/')) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    backgroundImage = e.target.result;
-                    backgroundPreviewImg.src = backgroundImage;
-                    backgroundPreview.classList.add('active');
-                    backgroundInfo.textContent = `✓ ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
-                    backgroundInfo.classList.add('active');
-                    updateCanvas();
+                reader.onload = function(event) {
+                    loadBackgroundImage(event.target.result);
                 };
                 reader.readAsDataURL(file);
             }
         }
 
+        function loadBackgroundImage(imageSrc) {
+            backgroundImage = imageSrc;
+            const img = new Image();
+            img.onload = function() {
+                backgroundImageElement = img;
+                img.className = 'background-image';
+                img.style.width = 'auto';
+                img.style.height = 'auto';
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = 'calc(100vh - 104px)';
+                img.style.objectFit = 'contain';
+                
+                canvasWrapper.innerHTML = '';
+                canvasWrapper.appendChild(img);
+                uploadOverlay.style.display = 'none';
+            };
+            img.src = imageSrc;
+        }
+
         // 视频上传
-        const videoInput = document.getElementById('videoInput');
-        const videoUploadArea = document.getElementById('videoUploadArea');
-        const videoInfo = document.getElementById('videoInfo');
-
-        videoInput.addEventListener('change', handleVideoUpload);
-
-        videoUploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            videoUploadArea.classList.add('dragover');
-        });
-
-        videoUploadArea.addEventListener('dragleave', () => {
-            videoUploadArea.classList.remove('dragover');
-        });
-
-        videoUploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            videoUploadArea.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0 && files[0].type === 'video/webm') {
-                handleFile(files[0], handleVideoUpload);
-            }
-        });
-
-        function handleVideoUpload(e) {
+        document.getElementById('videoInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 if (file.type !== 'video/webm') {
@@ -643,16 +533,57 @@
                 videoElement = video;
                 
                 video.onloadedmetadata = function() {
-                    videoInfo.innerHTML = `
-                        ✓ ${file.name}<br>
-                        大小: ${(file.size / 1024 / 1024).toFixed(2)} MB | 
-                        时长: ${video.duration.toFixed(2)} 秒 | 
-                        分辨率: ${video.videoWidth} × ${video.videoHeight}
-                    `;
-                    videoInfo.classList.add('active');
-                    updateCanvas();
+                    addVideoLayer();
                 };
             }
+        });
+
+        function addVideoLayer() {
+            if (!backgroundImageElement) {
+                alert('请先上传背景图片');
+                return;
+            }
+
+            // 移除旧的视频层
+            if (videoLayer) {
+                videoLayer.remove();
+            }
+
+            const videoLayerDiv = document.createElement('div');
+            videoLayerDiv.className = 'video-layer';
+            videoLayerDiv.style.width = '300px';
+            videoLayerDiv.style.height = '200px';
+            
+            // 计算居中位置
+            const wrapperRect = canvasWrapper.getBoundingClientRect();
+            const imgRect = backgroundImageElement.getBoundingClientRect();
+            const centerX = (imgRect.left - wrapperRect.left) + imgRect.width / 2;
+            const centerY = (imgRect.top - wrapperRect.top) + imgRect.height / 2;
+            
+            videoLayerDiv.style.left = (centerX - 150) + 'px';
+            videoLayerDiv.style.top = (centerY - 100) + 'px';
+
+            const video = document.createElement('video');
+            video.src = videoElement.src;
+            video.controls = false;
+            video.autoplay = true;
+            video.loop = true;
+            video.muted = true;
+            video.style.width = '100%';
+            video.style.height = '100%';
+            video.style.objectFit = 'contain';
+
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'resize-handle';
+
+            videoLayerDiv.appendChild(video);
+            videoLayerDiv.appendChild(resizeHandle);
+            canvasWrapper.appendChild(videoLayerDiv);
+
+            videoLayer = videoLayerDiv;
+
+            videoLayerDiv.addEventListener('mousedown', startDrag);
+            resizeHandle.addEventListener('mousedown', startResize);
         }
 
         // 角色弹窗
@@ -694,6 +625,11 @@
                 return;
             }
 
+            if (!backgroundImageElement) {
+                alert('请先上传背景图片');
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 const character = {
@@ -702,122 +638,86 @@
                     text: textInput.value.trim()
                 };
                 characters.push(character);
-                renderCharacters();
+                addCharacterLayer(character);
                 closeCharacterModal();
-                updateCanvas();
             };
             reader.readAsDataURL(imageInput.files[0]);
         }
 
-        function renderCharacters() {
-            const container = document.getElementById('charactersContainer');
-            if (characters.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: 20px;">暂无角色</div>';
-                return;
-            }
-
-            container.innerHTML = characters.map(char => `
-                <div class="character-card">
-                    <img src="${char.image}" alt="角色">
-                    <div class="character-text" title="${char.text}">${char.text}</div>
-                    <button class="btn-remove" onclick="removeCharacter(${char.id})">删除</button>
-                </div>
-            `).join('');
-        }
-
-        function removeCharacter(id) {
-            characters = characters.filter(c => c.id !== id);
-            renderCharacters();
-            updateCanvas();
-        }
-
-        // 更新画布
-        function updateCanvas() {
-            const wrapper = document.getElementById('canvasWrapper');
+        function addCharacterLayer(character) {
+            const characterLayer = document.createElement('div');
+            characterLayer.className = 'character-layer';
+            characterLayer.dataset.characterId = character.id;
             
-            if (!backgroundImage || !videoElement) {
-                wrapper.innerHTML = '<div class="empty-state">请先上传背景图片和视频</div>';
-                return;
-            }
-
-            wrapper.style.width = '100%';
-            wrapper.style.height = '600px';
-            wrapper.style.position = 'relative';
-            wrapper.style.background = '#000';
-
-            wrapper.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = character.image;
+            img.style.maxWidth = '200px';
+            img.style.maxHeight = '200px';
+            img.style.objectFit = 'contain';
             
-            // 添加背景图片
-            const bgImg = document.createElement('img');
-            bgImg.src = backgroundImage;
-            bgImg.className = 'background-image';
-            bgImg.style.objectFit = 'cover';
-            wrapper.appendChild(bgImg);
-
-            // 添加视频层
-            const videoLayerDiv = document.createElement('div');
-            videoLayerDiv.className = 'video-layer';
-            videoLayerDiv.style.width = '300px';
-            videoLayerDiv.style.height = '200px';
-            videoLayerDiv.style.left = '50%';
-            videoLayerDiv.style.top = '50%';
-            videoLayerDiv.style.transform = 'translate(-50%, -50%)';
-
-            const video = document.createElement('video');
-            video.src = videoElement.src;
-            video.controls = false;
-            video.autoplay = true;
-            video.loop = true;
-            video.muted = true;
-            video.style.width = '100%';
-            video.style.height = '100%';
-            video.style.objectFit = 'contain';
-
-            const resizeHandle = document.createElement('div');
-            resizeHandle.className = 'resize-handle';
-
-            videoLayerDiv.appendChild(video);
-            videoLayerDiv.appendChild(resizeHandle);
-            wrapper.appendChild(videoLayerDiv);
-
-            videoLayer = videoLayerDiv;
-
-            videoLayerDiv.addEventListener('mousedown', startDrag);
-            resizeHandle.addEventListener('mousedown', startResize);
+            const textOverlay = document.createElement('div');
+            textOverlay.className = 'character-text-overlay';
+            textOverlay.textContent = character.text;
+            
+            characterLayer.appendChild(img);
+            characterLayer.appendChild(textOverlay);
+            
+            // 计算初始位置（背景图片中心偏右）
+            const wrapperRect = canvasWrapper.getBoundingClientRect();
+            const imgRect = backgroundImageElement.getBoundingClientRect();
+            const centerX = (imgRect.left - wrapperRect.left) + imgRect.width / 2;
+            const centerY = (imgRect.top - wrapperRect.top) + imgRect.height / 2;
+            
+            characterLayer.style.left = (centerX + 50) + 'px';
+            characterLayer.style.top = (centerY - 100) + 'px';
+            
+            characterLayer.addEventListener('mousedown', startDrag);
+            canvasWrapper.appendChild(characterLayer);
         }
 
+        // 拖拽功能
         function startDrag(e) {
             if (e.target.classList.contains('resize-handle')) return;
+            if (e.target.classList.contains('character-text-overlay')) return;
+            
             isDragging = true;
-            const rect = videoLayer.getBoundingClientRect();
+            currentDraggingElement = e.currentTarget;
+            const rect = currentDraggingElement.getBoundingClientRect();
+            const wrapperRect = canvasWrapper.getBoundingClientRect();
             dragOffset.x = e.clientX - rect.left;
             dragOffset.y = e.clientY - rect.top;
+            
             document.addEventListener('mousemove', onDrag);
             document.addEventListener('mouseup', stopDrag);
             e.preventDefault();
         }
 
         function onDrag(e) {
-            if (!isDragging) return;
-            const wrapper = document.getElementById('canvasWrapper');
-            const wrapperRect = wrapper.getBoundingClientRect();
+            if (!isDragging || !currentDraggingElement) return;
+            
+            const wrapperRect = canvasWrapper.getBoundingClientRect();
             let x = e.clientX - wrapperRect.left - dragOffset.x;
             let y = e.clientY - wrapperRect.top - dragOffset.y;
             
-            x = Math.max(0, Math.min(x, wrapperRect.width - videoLayer.offsetWidth));
-            y = Math.max(0, Math.min(y, wrapperRect.height - videoLayer.offsetHeight));
+            // 限制在画布内
+            const elementWidth = currentDraggingElement.offsetWidth;
+            const elementHeight = currentDraggingElement.offsetHeight;
             
-            videoLayer.style.left = x + 'px';
-            videoLayer.style.top = y + 'px';
-            videoLayer.style.transform = 'none';
+            x = Math.max(0, Math.min(x, wrapperRect.width - elementWidth));
+            y = Math.max(0, Math.min(y, wrapperRect.height - elementHeight));
+            
+            currentDraggingElement.style.left = x + 'px';
+            currentDraggingElement.style.top = y + 'px';
         }
 
         function stopDrag() {
             isDragging = false;
+            currentDraggingElement = null;
             document.removeEventListener('mousemove', onDrag);
             document.removeEventListener('mouseup', stopDrag);
         }
 
+        // 缩放功能
         function startResize(e) {
             isResizing = true;
             resizeStartSize.width = videoLayer.offsetWidth;
@@ -847,14 +747,9 @@
             document.removeEventListener('mouseup', stopResize);
         }
 
-        function resetCanvas() {
-            if (confirm('确定要重置画布吗？')) {
-                updateCanvas();
-            }
-        }
-
+        // 合成视频
         async function composeVideo() {
-            if (!backgroundImage || !videoElement) {
+            if (!backgroundImageElement || !videoElement) {
                 alert('请先上传背景图片和视频');
                 return;
             }
@@ -866,81 +761,103 @@
 
             try {
                 const canvas = document.createElement('canvas');
-                const wrapper = document.getElementById('canvasWrapper');
-                const wrapperRect = wrapper.getBoundingClientRect();
+                const wrapperRect = canvasWrapper.getBoundingClientRect();
+                const imgRect = backgroundImageElement.getBoundingClientRect();
                 
-                canvas.width = wrapperRect.width;
-                canvas.height = wrapperRect.height;
+                canvas.width = imgRect.width;
+                canvas.height = imgRect.height;
                 const ctx = canvas.getContext('2d');
 
-                const videoLayerRect = videoLayer.getBoundingClientRect();
-                const wrapperBounds = wrapper.getBoundingClientRect();
-                const videoX = videoLayerRect.left - wrapperBounds.left;
-                const videoY = videoLayerRect.top - wrapperBounds.top;
-                const videoWidth = videoLayerRect.width;
-                const videoHeight = videoLayerRect.height;
+                // 绘制背景
+                ctx.drawImage(backgroundImageElement, 0, 0, canvas.width, canvas.height);
 
-                const bgImg = new Image();
-                bgImg.crossOrigin = 'anonymous';
-                await new Promise((resolve, reject) => {
-                    bgImg.onload = resolve;
-                    bgImg.onerror = reject;
-                    bgImg.src = backgroundImage;
-                });
-                ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+                // 获取视频层位置和尺寸
+                if (videoLayer) {
+                    const videoLayerRect = videoLayer.getBoundingClientRect();
+                    const videoX = videoLayerRect.left - imgRect.left;
+                    const videoY = videoLayerRect.top - imgRect.top;
+                    const videoWidth = videoLayerRect.width;
+                    const videoHeight = videoLayerRect.height;
 
-                const video = document.createElement('video');
-                video.src = videoElement.src;
-                video.crossOrigin = 'anonymous';
-                video.muted = true;
-                video.loop = true;
-                await new Promise((resolve) => {
-                    video.onloadedmetadata = () => {
-                        video.play();
-                        resolve();
+                    // 创建视频元素用于录制
+                    const video = document.createElement('video');
+                    video.src = videoElement.src;
+                    video.crossOrigin = 'anonymous';
+                    video.muted = true;
+                    video.loop = true;
+                    await new Promise((resolve) => {
+                        video.onloadedmetadata = () => {
+                            video.play();
+                            resolve();
+                        };
+                    });
+
+                    // 绘制角色
+                    const characterLayers = canvasWrapper.querySelectorAll('.character-layer');
+                    characterLayers.forEach(layer => {
+                        const layerRect = layer.getBoundingClientRect();
+                        const img = layer.querySelector('img');
+                        if (img && img.complete) {
+                            const charX = layerRect.left - imgRect.left;
+                            const charY = layerRect.top - imgRect.top;
+                            ctx.drawImage(img, charX, charY, layerRect.width, layerRect.height);
+                        }
+                    });
+
+                    // 使用 MediaRecorder 录制
+                    const stream = canvas.captureStream(30);
+                    const recorder = new MediaRecorder(stream, {
+                        mimeType: 'video/webm;codecs=vp9'
+                    });
+
+                    const chunks = [];
+                    recorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) chunks.push(e.data);
                     };
-                });
 
-                const stream = canvas.captureStream(30);
-                const recorder = new MediaRecorder(stream, {
-                    mimeType: 'video/webm;codecs=vp9'
-                });
+                    recorder.onstop = () => {
+                        const blob = new Blob(chunks, { type: 'video/webm' });
+                        const url = URL.createObjectURL(blob);
+                        
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'composed-video.webm';
+                        a.click();
+                        
+                        loading.classList.remove('active');
+                        composeBtn.disabled = false;
+                        alert('视频合成完成！');
+                    };
 
-                const chunks = [];
-                recorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) chunks.push(e.data);
-                };
+                    // 绘制视频帧
+                    const drawFrame = () => {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(backgroundImageElement, 0, 0, canvas.width, canvas.height);
+                        
+                        // 绘制角色
+                        characterLayers.forEach(layer => {
+                            const layerRect = layer.getBoundingClientRect();
+                            const img = layer.querySelector('img');
+                            if (img && img.complete) {
+                                const charX = layerRect.left - imgRect.left;
+                                const charY = layerRect.top - imgRect.top;
+                                ctx.drawImage(img, charX, charY, layerRect.width, layerRect.height);
+                            }
+                        });
+                        
+                        ctx.drawImage(video, videoX, videoY, videoWidth, videoHeight);
+                    };
 
-                recorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'video/webm' });
-                    const url = URL.createObjectURL(blob);
-                    
-                    const resultVideo = document.getElementById('resultVideo');
-                    const downloadLink = document.getElementById('downloadLink');
-                    const resultContainer = document.getElementById('resultContainer');
-                    
-                    resultVideo.src = url;
-                    downloadLink.href = url;
-                    resultContainer.classList.add('active');
-                    loading.classList.remove('active');
-                    composeBtn.disabled = false;
-                };
+                    recorder.start();
+                    const interval = setInterval(drawFrame, 33);
 
-                const drawFrame = () => {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(video, videoX, videoY, videoWidth, videoHeight);
-                };
-
-                recorder.start();
-                const interval = setInterval(drawFrame, 33);
-
-                setTimeout(() => {
-                    clearInterval(interval);
-                    recorder.stop();
-                    video.pause();
-                    stream.getTracks().forEach(track => track.stop());
-                }, Math.min(video.duration * 1000, 10000));
+                    setTimeout(() => {
+                        clearInterval(interval);
+                        recorder.stop();
+                        video.pause();
+                        stream.getTracks().forEach(track => track.stop());
+                    }, Math.min(video.duration * 1000, 10000));
+                }
 
             } catch (error) {
                 console.error('合成视频失败:', error);
