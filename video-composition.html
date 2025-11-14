@@ -136,10 +136,10 @@
             top: -32px;
             left: 0;
             background: rgba(0,0,0,0.7);
-            padding: 4px 8px;
+            padding: 4px 6px;
             border-radius: 4px;
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
         }
 
@@ -151,7 +151,15 @@
             padding: 4px;
             display: flex;
             align-items: center;
-            font-size: 12px;
+            justify-content: center;
+            border-radius: 2px;
+            transition: background-color 0.2s;
+            width: 24px;
+            height: 24px;
+        }
+
+        .video-controls button:hover {
+            background: rgba(255,255,255,0.2);
         }
 
         .resize-handle {
@@ -524,13 +532,6 @@
                 </svg>
                 上传视频
             </button>
-            <button class="btn btn-secondary" onclick="removeVideo()" id="removeVideoBtn" style="display: none;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                </svg>
-                删除视频
-            </button>
             <button class="btn" onclick="composeVideo()" id="composeBtn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
@@ -711,8 +712,6 @@
                 
                 video.onloadedmetadata = function() {
                     addVideoLayer();
-                    // 显示删除视频按钮
-                    document.getElementById('removeVideoBtn').style.display = 'inline-flex';
                 };
             }
         });
@@ -730,7 +729,6 @@
                 }
                 videoFile = null;
                 document.getElementById('videoInput').value = '';
-                document.getElementById('removeVideoBtn').style.display = 'none';
             }
         }
 
@@ -776,6 +774,16 @@
                 toggleVideoMute();
             };
             videoControls.appendChild(muteBtn);
+            
+            // 添加删除按钮
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+            deleteBtn.title = '删除视频';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                removeVideo();
+            };
+            videoControls.appendChild(deleteBtn);
 
             const video = document.createElement('video');
             video.src = videoElement.src;
