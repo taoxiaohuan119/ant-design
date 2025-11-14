@@ -604,6 +604,7 @@
         let videoFile = null;
         let videoElement = null;
         let videoMuted = true;
+        let videoAspectRatio = 1; // 视频原始宽高比
         let characters = [];
         let videoLayer = null;
         let isDragging = false;
@@ -717,18 +718,25 @@
                 videoLayer.remove();
             }
 
+            // 获取视频原始宽高比
+            videoAspectRatio = videoElement.videoWidth / videoElement.videoHeight;
+            
             const videoLayerDiv = document.createElement('div');
             videoLayerDiv.className = 'video-layer';
-            videoLayerDiv.style.width = '300px';
-            videoLayerDiv.style.height = '200px';
+            
+            // 根据视频宽高比设置初始尺寸
+            const initialWidth = 300;
+            const initialHeight = initialWidth / videoAspectRatio;
+            videoLayerDiv.style.width = initialWidth + 'px';
+            videoLayerDiv.style.height = initialHeight + 'px';
             
             const wrapperRect = canvasWrapper.getBoundingClientRect();
             const imgRect = backgroundImageElement.getBoundingClientRect();
             const centerX = (imgRect.left - wrapperRect.left) + imgRect.width / 2;
             const centerY = (imgRect.top - wrapperRect.top) + imgRect.height / 2;
             
-            videoLayerDiv.style.left = (centerX - 150) + 'px';
-            videoLayerDiv.style.top = (centerY - 100) + 'px';
+            videoLayerDiv.style.left = (centerX - initialWidth / 2) + 'px';
+            videoLayerDiv.style.top = (centerY - initialHeight / 2) + 'px';
 
             const videoControls = document.createElement('div');
             videoControls.className = 'video-controls';
@@ -1044,8 +1052,10 @@
             if (!isResizing) return;
             const deltaX = e.clientX - resizeStartPos.x;
             const deltaY = e.clientY - resizeStartPos.y;
+            
+            // 保持视频原始宽高比
             const newWidth = Math.max(100, resizeStartSize.width + deltaX);
-            const newHeight = Math.max(100, resizeStartSize.height + deltaY);
+            const newHeight = newWidth / videoAspectRatio;
             
             videoLayer.style.width = newWidth + 'px';
             videoLayer.style.height = newHeight + 'px';
@@ -1074,23 +1084,27 @@
                 const wrapperRect = canvasWrapper.getBoundingClientRect();
                 const imgRect = backgroundImageElement.getBoundingClientRect();
                 
-                canvas.width = imgRect.width;
-                canvas.height = imgRect.height;
+                // 使用画布的实际显示尺寸（所见即所得）
+                canvas.width = Math.round(imgRect.width);
+                canvas.height = Math.round(imgRect.height);
                 const ctx = canvas.getContext('2d');
 
+                // 绘制背景，使用实际显示尺寸
                 ctx.drawImage(backgroundImageElement, 0, 0, canvas.width, canvas.height);
 
                 if (videoLayer) {
                     const videoLayerRect = videoLayer.getBoundingClientRect();
-                    const videoX = videoLayerRect.left - imgRect.left;
-                    const videoY = videoLayerRect.top - imgRect.top;
-                    const videoWidth = videoLayerRect.width;
-                    const videoHeight = videoLayerRect.height;
+                    // 计算视频在画布上的实际位置和尺寸（所见即所得）
+                    const videoX = (videoLayerRect.left - imgRect.left) * (canvas.width / imgRect.width);
+                    const videoY = (videoLayerRect.top - imgRect.top) * (canvas.height / imgRect.height);
+                    const videoWidth = videoLayerRect.width * (canvas.width / imgRect.width);
+                    const videoHeight = videoLayerRect.height * (canvas.height / imgRect.height);
 
+                    // 创建用于合成的视频元素（用于绘制）
                     const video = document.createElement('video');
                     video.src = videoElement.src;
                     video.crossOrigin = 'anonymous';
-                    video.muted = videoMuted;
+                    video.muted = false; // 不静音，保留音频
                     video.loop = true;
                     await new Promise((resolve) => {
                         video.onloadedmetadata = () => {
@@ -1098,15 +1112,52 @@
                             resolve();
                         };
                     });
+                    
+                    // 创建用于提取音频的视频元素
+                    const audioVideo = document.createElement('video');
+                    audioVideo.src = videoElement.src;
+                    audioVideo.crossOrigin = 'anonymous';
+                    audioVideo.muted = false;
+                    audioVideo.loop = true;
+                    await new Promise((resolve) => {
+                        audioVideo.onloadedmetadata = () => {
+                            audioVideo.play();
+                            resolve();
+                        };
+                    });
+                    
+                    // 获取原始视频的音频轨道
+                    let audioStream = null;
+                    try {
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        const source = audioContext.createMediaElementSource(audioVideo);
+                        const destination = audioContext.createMediaStreamDestination();
+                        source.connect(destination);
+                        source.connect(audioContext.destination); // 保持音频播放
+                        audioStream = destination.stream;
+                    } catch (e) {
+                        console.warn('无法创建音频上下文:', e);
+                        // 如果无法创建音频上下文，尝试直接从视频元素获取音频
+                        try {
+                            const tempCanvas = document.createElement('canvas');
+                            const tempStream = tempCanvas.captureStream(30);
+                            // 这个方法可能不工作，但作为备选方案
+                        } catch (e2) {
+                            console.warn('无法提取音频轨道');
+                        }
+                    }
 
+                    // 绘制角色图层，使用正确的比例
                     const characterLayers = canvasWrapper.querySelectorAll('.character-layer');
                     characterLayers.forEach(layer => {
                         const layerRect = layer.getBoundingClientRect();
                         const img = layer.querySelector('img');
                         if (img && img.complete) {
-                            const charX = layerRect.left - imgRect.left;
-                            const charY = layerRect.top - imgRect.top;
-                            ctx.drawImage(img, charX, charY, layerRect.width, layerRect.height);
+                            const charX = (layerRect.left - imgRect.left) * (canvas.width / imgRect.width);
+                            const charY = (layerRect.top - imgRect.top) * (canvas.height / imgRect.height);
+                            const charWidth = layerRect.width * (canvas.width / imgRect.width);
+                            const charHeight = layerRect.height * (canvas.height / imgRect.height);
+                            ctx.drawImage(img, charX, charY, charWidth, charHeight);
                         }
                     });
 
@@ -1123,8 +1174,20 @@
                         }
                     }
 
-                    const stream = canvas.captureStream(30);
-                    const recorder = new MediaRecorder(stream, { mimeType });
+                    // 创建视频流
+                    const videoStream = canvas.captureStream(30);
+                    
+                    // 合并音频轨道（如果可用）
+                    let finalStream = videoStream;
+                    if (audioStream && audioStream.getAudioTracks().length > 0) {
+                        const audioTracks = audioStream.getAudioTracks();
+                        audioTracks.forEach(track => {
+                            videoStream.addTrack(track);
+                        });
+                        finalStream = videoStream;
+                    }
+                    
+                    const recorder = new MediaRecorder(finalStream, { mimeType });
 
                     const chunks = [];
                     recorder.ondataavailable = (e) => {
@@ -1160,28 +1223,34 @@
                         ctx.clearRect(0, 0, canvas.width, canvas.height);
                         ctx.drawImage(backgroundImageElement, 0, 0, canvas.width, canvas.height);
                         
+                        // 绘制角色图层，使用正确的比例
                         characterLayers.forEach(layer => {
                             const layerRect = layer.getBoundingClientRect();
                             const img = layer.querySelector('img');
                             if (img && img.complete) {
-                                const charX = layerRect.left - imgRect.left;
-                                const charY = layerRect.top - imgRect.top;
-                                ctx.drawImage(img, charX, charY, layerRect.width, layerRect.height);
+                                const charX = (layerRect.left - imgRect.left) * (canvas.width / imgRect.width);
+                                const charY = (layerRect.top - imgRect.top) * (canvas.height / imgRect.height);
+                                const charWidth = layerRect.width * (canvas.width / imgRect.width);
+                                const charHeight = layerRect.height * (canvas.height / imgRect.height);
+                                ctx.drawImage(img, charX, charY, charWidth, charHeight);
                             }
                         });
                         
+                        // 绘制视频，保持原始宽高比
                         ctx.drawImage(video, videoX, videoY, videoWidth, videoHeight);
                     };
 
                     recorder.start();
                     const interval = setInterval(drawFrame, 33);
 
+                    const recordDuration = Math.min(video.duration * 1000, 10000);
                     setTimeout(() => {
                         clearInterval(interval);
                         recorder.stop();
                         video.pause();
-                        stream.getTracks().forEach(track => track.stop());
-                    }, Math.min(video.duration * 1000, 10000));
+                        if (audioVideo) audioVideo.pause();
+                        finalStream.getTracks().forEach(track => track.stop());
+                    }, recordDuration);
                 }
 
             } catch (error) {
