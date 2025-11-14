@@ -517,12 +517,19 @@
                 历史角色
             </button>
             <input type="file" id="videoInput" accept="video/webm" style="display: none;">
-            <button class="btn btn-secondary" onclick="document.getElementById('videoInput').click()">
+            <button class="btn btn-secondary" onclick="document.getElementById('videoInput').click()" id="uploadVideoBtn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polygon points="23 7 16 12 23 17 23 7"></polygon>
                     <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
                 </svg>
                 上传视频
+            </button>
+            <button class="btn btn-secondary" onclick="removeVideo()" id="removeVideoBtn" style="display: none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                删除视频
             </button>
             <button class="btn" onclick="composeVideo()" id="composeBtn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -704,9 +711,28 @@
                 
                 video.onloadedmetadata = function() {
                     addVideoLayer();
+                    // 显示删除视频按钮
+                    document.getElementById('removeVideoBtn').style.display = 'inline-flex';
                 };
             }
         });
+
+        // 删除视频
+        function removeVideo() {
+            if (confirm('确定要删除当前视频吗？')) {
+                if (videoLayer) {
+                    videoLayer.remove();
+                    videoLayer = null;
+                }
+                if (videoElement) {
+                    URL.revokeObjectURL(videoElement.src);
+                    videoElement = null;
+                }
+                videoFile = null;
+                document.getElementById('videoInput').value = '';
+                document.getElementById('removeVideoBtn').style.display = 'none';
+            }
+        }
 
         function addVideoLayer() {
             if (!backgroundImageElement) {
@@ -1100,11 +1126,12 @@
                     const videoWidth = videoLayerRect.width * (canvas.width / imgRect.width);
                     const videoHeight = videoLayerRect.height * (canvas.height / imgRect.height);
 
-                    // 创建用于合成的视频元素（用于绘制）
+                    // 创建用于合成的视频元素（用于绘制）- 静音，不播放声音
                     const video = document.createElement('video');
                     video.src = videoElement.src;
                     video.crossOrigin = 'anonymous';
-                    video.muted = false; // 不静音，保留音频
+                    video.muted = true; // 静音，不播放声音
+                    video.volume = 0; // 确保音量为零
                     video.loop = true;
                     await new Promise((resolve) => {
                         video.onloadedmetadata = () => {
@@ -1114,11 +1141,21 @@
                     });
                     
                     // 创建用于提取音频的视频元素
+                    // 注意：不能设置为muted，否则无法提取音频轨道
+                    // 通过不连接到audioContext.destination来避免播放声音
                     const audioVideo = document.createElement('video');
                     audioVideo.src = videoElement.src;
                     audioVideo.crossOrigin = 'anonymous';
-                    audioVideo.muted = false;
+                    audioVideo.muted = false; // 不能静音，否则无法提取音频
                     audioVideo.loop = true;
+                    // 设置为不可见，避免视觉干扰
+                    audioVideo.style.position = 'absolute';
+                    audioVideo.style.opacity = '0';
+                    audioVideo.style.pointerEvents = 'none';
+                    audioVideo.style.width = '1px';
+                    audioVideo.style.height = '1px';
+                    document.body.appendChild(audioVideo);
+                    
                     await new Promise((resolve) => {
                         audioVideo.onloadedmetadata = () => {
                             audioVideo.play();
@@ -1128,23 +1165,32 @@
                     
                     // 获取原始视频的音频轨道
                     let audioStream = null;
+                    let audioContext = null;
                     try {
-                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        
+                        // 等待音频上下文准备就绪
+                        if (audioContext.state === 'suspended') {
+                            await audioContext.resume();
+                        }
+                        
                         const source = audioContext.createMediaElementSource(audioVideo);
                         const destination = audioContext.createMediaStreamDestination();
+                        // 只连接到destination，不连接到audioContext.destination，这样就不会播放声音
                         source.connect(destination);
-                        source.connect(audioContext.destination); // 保持音频播放
+                        // 重要：不连接到audioContext.destination，避免播放声音
                         audioStream = destination.stream;
+                        
+                        // 验证音频轨道是否存在
+                        if (audioStream.getAudioTracks().length === 0) {
+                            console.warn('音频流中没有音频轨道');
+                            audioStream = null;
+                        } else {
+                            console.log('成功提取音频轨道');
+                        }
                     } catch (e) {
                         console.warn('无法创建音频上下文:', e);
-                        // 如果无法创建音频上下文，尝试直接从视频元素获取音频
-                        try {
-                            const tempCanvas = document.createElement('canvas');
-                            const tempStream = tempCanvas.captureStream(30);
-                            // 这个方法可能不工作，但作为备选方案
-                        } catch (e2) {
-                            console.warn('无法提取音频轨道');
-                        }
+                        audioStream = null;
                     }
 
                     // 绘制角色图层，使用正确的比例
@@ -1181,11 +1227,18 @@
                     let finalStream = videoStream;
                     if (audioStream && audioStream.getAudioTracks().length > 0) {
                         const audioTracks = audioStream.getAudioTracks();
+                        console.log('找到音频轨道，数量:', audioTracks.length);
                         audioTracks.forEach(track => {
+                            console.log('添加音频轨道:', track.label, track.enabled);
                             videoStream.addTrack(track);
                         });
                         finalStream = videoStream;
+                    } else {
+                        console.warn('没有可用的音频轨道');
                     }
+                    
+                    // 验证最终流的轨道
+                    console.log('最终流轨道数 - 视频:', finalStream.getVideoTracks().length, '音频:', finalStream.getAudioTracks().length);
                     
                     const recorder = new MediaRecorder(finalStream, { mimeType });
 
@@ -1248,7 +1301,18 @@
                         clearInterval(interval);
                         recorder.stop();
                         video.pause();
-                        if (audioVideo) audioVideo.pause();
+                        if (audioVideo) {
+                            audioVideo.pause();
+                            audioVideo.src = '';
+                            // 从DOM中移除audioVideo元素
+                            if (audioVideo.parentNode) {
+                                audioVideo.parentNode.removeChild(audioVideo);
+                            }
+                        }
+                        // 清理音频上下文
+                        if (audioContext && audioContext.state !== 'closed') {
+                            audioContext.close().catch(e => console.warn('关闭音频上下文失败:', e));
+                        }
                         finalStream.getTracks().forEach(track => track.stop());
                     }, recordDuration);
                 }
