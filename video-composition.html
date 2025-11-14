@@ -162,6 +162,30 @@
             background: rgba(255,255,255,0.2);
         }
 
+        .video-close-btn {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            width: 24px;
+            height: 24px;
+            background: rgba(234, 67, 53, 0.9);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            z-index: 4;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .video-close-btn:hover {
+            background: rgba(234, 67, 53, 1);
+            transform: scale(1.1);
+        }
+
         .resize-handle {
             position: absolute;
             width: 16px;
@@ -410,9 +434,13 @@
             font-size: 14px;
             color: #202124;
             margin-bottom: 4px;
+            font-weight: 500;
+            line-height: 1.4;
+            max-height: 2.8em;
             overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
 
         .history-item-time {
@@ -718,15 +746,32 @@
 
         // 删除视频
         function removeVideo() {
+            if (!videoLayer && !videoElement) {
+                return; // 如果没有视频，直接返回
+            }
+            
             if (confirm('确定要删除当前视频吗？')) {
+                // 暂停并移除视频层
                 if (videoLayer) {
+                    if (videoLayer.videoElement) {
+                        videoLayer.videoElement.pause();
+                        videoLayer.videoElement.src = '';
+                    }
                     videoLayer.remove();
                     videoLayer = null;
                 }
+                
+                // 清理视频元素
                 if (videoElement) {
-                    URL.revokeObjectURL(videoElement.src);
+                    videoElement.pause();
+                    const videoSrc = videoElement.src;
+                    videoElement.src = '';
+                    if (videoSrc && videoSrc.startsWith('blob:')) {
+                        URL.revokeObjectURL(videoSrc);
+                    }
                     videoElement = null;
                 }
+                
                 videoFile = null;
                 document.getElementById('videoInput').value = '';
             }
@@ -774,16 +819,6 @@
                 toggleVideoMute();
             };
             videoControls.appendChild(muteBtn);
-            
-            // 添加删除按钮
-            const deleteBtn = document.createElement('button');
-            deleteBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
-            deleteBtn.title = '删除视频';
-            deleteBtn.onclick = (e) => {
-                e.stopPropagation();
-                removeVideo();
-            };
-            videoControls.appendChild(deleteBtn);
 
             const video = document.createElement('video');
             video.src = videoElement.src;
@@ -798,9 +833,20 @@
             const resizeHandle = document.createElement('div');
             resizeHandle.className = 'resize-handle';
 
+            // 添加关闭按钮到右上角
+            const closeBtn = document.createElement('div');
+            closeBtn.className = 'video-close-btn';
+            closeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+            closeBtn.title = '关闭视频';
+            closeBtn.onclick = (e) => {
+                e.stopPropagation();
+                removeVideo();
+            };
+
             videoLayerDiv.appendChild(videoControls);
             videoLayerDiv.appendChild(video);
             videoLayerDiv.appendChild(resizeHandle);
+            videoLayerDiv.appendChild(closeBtn);
             canvasWrapper.appendChild(videoLayerDiv);
 
             videoLayer = videoLayerDiv;
@@ -987,7 +1033,7 @@
                     <div class="history-item">
                         <img src="${char.image}" alt="角色">
                         <div class="history-item-info">
-                            <div class="history-item-text">${char.text}</div>
+                            <div class="history-item-text" title="${char.text}">${char.text || '无台词'}</div>
                             <div class="history-item-time">${new Date(char.createdAt).toLocaleString('zh-CN')}</div>
                         </div>
                         <button class="btn btn-small" onclick="useHistoryCharacter(${char.id})">使用</button>
@@ -1032,6 +1078,7 @@
             if (e.target.classList.contains('character-text-overlay')) return;
             if (e.target.closest('.character-controls')) return;
             if (e.target.closest('.video-controls')) return;
+            if (e.target.closest('.video-close-btn')) return;
             
             isDragging = true;
             currentDraggingElement = e.currentTarget;
