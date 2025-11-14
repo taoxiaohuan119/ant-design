@@ -349,19 +349,23 @@
         }
 
         .file-input-label {
-            display: inline-block;
-            padding: 8px 16px;
-            background: #f8f9fa;
-            border: 1px solid #dadce0;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: #4285f4;
+            color: #fff;
+            border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 500;
             transition: all 0.2s;
         }
 
         .file-input-label:hover {
-            background: #e8eaed;
-            border-color: #4285f4;
+            background: #1967d2;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
     </style>
 </head>
@@ -421,7 +425,14 @@
             <div class="modal-header">创建角色</div>
             <div class="form-group">
                 <label>上传角色图片</label>
-                <label for="characterImageInput" class="file-input-label">选择图片</label>
+                <label for="characterImageInput" class="file-input-label">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    上传图片
+                </label>
                 <input type="file" id="characterImageInput" accept="image/*">
                 <img id="characterImagePreview" class="preview-image" alt="预览">
             </div>
