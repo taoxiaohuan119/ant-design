@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频合成工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .step.active .step-number {
+            background: #667eea;
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background: #4caf50;
+            color: white;
+        }
+
+        .step-line {
+            width: 60px;
+            height: 2px;
+            background: #e0e0e0;
+            margin: 0 10px;
+        }
+
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-secondary {
+            background: #757575;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #616161;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            min-height: 500px;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            background: #f5f5f5;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 500px;
+        }
+
+        .background-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        .video-layer {
+            position: absolute;
+            border: 3px solid #667eea;
+            cursor: move;
+            z-index: 2;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .video-layer video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .resize-handle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: nwse-resize;
+            bottom: -10px;
+            right: -10px;
+            z-index: 3;
+        }
+
+        .character-item {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .character-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .character-text {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group input[type="file"] {
+            padding: 5px;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .preview-image.active {
+            display: block;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .characters-list {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            min-height: 150px;
+        }
+
+        .characters-list h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+        }
+
+        .video-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #1976d2;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 视频合成工具</h1>
+        
+        <div class="step-indicator">
+            <div class="step active" id="step1">
+                <div class="step-number">1</div>
+                <span>上传视频</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" id="step2">
+                <div class="step-number">2</div>
+                <span>添加角色</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" id="step3">
+                <div class="step-number">3</div>
+                <span>预览合成</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" id="step4">
+                <div class="step-number">4</div>
+                <span>导出视频</span>
+            </div>
+        </div>
+
+        <!-- 步骤1: 上传视频 -->
+        <div class="step-content active" id="content1">
+            <div class="button-group">
+                <input type="file" id="videoInput" accept="video/webm" style="display: none;">
+                <button class="btn btn-primary" onclick="document.getElementById('videoInput').click()">
+                    📹 上传 WebM 视频
+                </button>
+            </div>
+            <div id="videoInfo" class="video-info" style="display: none;"></div>
+        </div>
+
+        <!-- 步骤2: 添加角色 -->
+        <div class="step-content" id="content2">
+            <div class="button-group">
+                <button class="btn btn-success" onclick="openCharacterModal()">
+                    ➕ 添加图片角色
+                </button>
+            </div>
+            <div class="characters-list">
+                <h3>已添加的角色</h3>
+                <div id="charactersContainer">
+                    <div class="empty-state">暂无角色，点击上方按钮添加</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤3: 预览合成 -->
+        <div class="step-content" id="content3">
+            <div class="canvas-container">
+                <div class="canvas-wrapper" id="canvasWrapper">
+                    <div class="empty-state">请先上传视频和添加角色</div>
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="resetCanvas()">重置画布</button>
+            </div>
+        </div>
+
+        <!-- 步骤4: 导出视频 -->
+        <div class="step-content" id="content4">
+            <div class="button-group">
+                <button class="btn btn-success" onclick="composeVideo()" id="composeBtn">
+                    🎥 合成视频
+                </button>
+            </div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px;">正在合成视频，请稍候...</p>
+            </div>
+            <div id="resultContainer" style="display: none; margin-top: 20px;">
+                <h3>合成完成！</h3>
+                <video id="resultVideo" controls style="width: 100%; max-width: 800px; margin-top: 15px; border-radius: 8px;"></video>
+                <div style="margin-top: 15px;">
+                    <a id="downloadLink" class="btn btn-primary" download="composed-video.webm">⬇️ 下载视频</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 添加角色弹窗 -->
+        <div class="modal" id="characterModal">
+            <div class="modal-content">
+                <div class="modal-header">添加图片角色</div>
+                <div class="form-group">
+                    <label>上传角色图片：</label>
+                    <input type="file" id="characterImageInput" accept="image/*">
+                    <img id="characterImagePreview" class="preview-image" alt="预览">
+                </div>
+                <div class="form-group">
+                    <label>角色台词内容：</label>
+                    <textarea id="characterTextInput" placeholder="请输入角色的台词内容..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeCharacterModal()">取消</button>
+                    <button class="btn btn-primary" onclick="addCharacter()">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let videoFile = null;
+        let videoElement = null;
+        let characters = [];
+        let videoLayer = null;
+        let isDragging = false;
+        let isResizing = false;
+        let dragOffset = { x: 0, y: 0 };
+        let resizeStartSize = { width: 0, height: 0 };
+        let resizeStartPos = { x: 0, y: 0 };
+
+        // 步骤管理
+        function updateStep(step) {
+            document.querySelectorAll('.step').forEach((s, i) => {
+                if (i + 1 < step) {
+                    s.classList.add('completed');
+                    s.classList.remove('active');
+                } else if (i + 1 === step) {
+                    s.classList.add('active');
+                    s.classList.remove('completed');
+                } else {
+                    s.classList.remove('active', 'completed');
+                }
+            });
+
+            document.querySelectorAll('.step-content').forEach((content, i) => {
+                if (i + 1 === step) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+
+            currentStep = step;
+        }
+
+        // 视频上传
+        document.getElementById('videoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.type !== 'video/webm') {
+                    alert('请上传 WebM 格式的视频文件！');
+                    return;
+                }
+                videoFile = file;
+                const video = document.createElement('video');
+                video.src = URL.createObjectURL(file);
+                video.preload = 'metadata';
+                videoElement = video;
+                
+                video.onloadedmetadata = function() {
+                    const info = document.getElementById('videoInfo');
+                    info.innerHTML = `
+                        <strong>✓ 视频上传成功</strong><br>
+                        文件名: ${file.name}<br>
+                        大小: ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+                        时长: ${video.duration.toFixed(2)} 秒<br>
+                        分辨率: ${video.videoWidth} x ${video.videoHeight}
+                    `;
+                    info.style.display = 'block';
+                    updateStep(2);
+                };
+            }
+        });
+
+        // 角色弹窗
+        function openCharacterModal() {
+            document.getElementById('characterModal').classList.add('active');
+            document.getElementById('characterImageInput').value = '';
+            document.getElementById('characterTextInput').value = '';
+            document.getElementById('characterImagePreview').classList.remove('active');
+        }
+
+        function closeCharacterModal() {
+            document.getElementById('characterModal').classList.remove('active');
+        }
+
+        // 图片预览
+        document.getElementById('characterImageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('characterImagePreview');
+                    preview.src = e.target.result;
+                    preview.classList.add('active');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 添加角色
+        function addCharacter() {
+            const imageInput = document.getElementById('characterImageInput');
+            const textInput = document.getElementById('characterTextInput');
+            
+            if (!imageInput.files[0]) {
+                alert('请上传角色图片！');
+                return;
+            }
+            
+            if (!textInput.value.trim()) {
+                alert('请输入角色台词内容！');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const character = {
+                    id: Date.now(),
+                    image: e.target.result,
+                    text: textInput.value.trim()
+                };
+                characters.push(character);
+                renderCharacters();
+                closeCharacterModal();
+                
+                if (currentStep === 2) {
+                    updateStep(3);
+                    renderCanvas();
+                }
+            };
+            reader.readAsDataURL(imageInput.files[0]);
+        }
+
+        // 渲染角色列表
+        function renderCharacters() {
+            const container = document.getElementById('charactersContainer');
+            if (characters.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无角色，点击上方按钮添加</div>';
+                return;
+            }
+
+            container.innerHTML = characters.map(char => `
+                <div class="character-item">
+                    <img src="${char.image}" alt="角色">
+                    <div class="character-text" title="${char.text}">${char.text}</div>
+                    <button onclick="removeCharacter(${char.id})" style="margin-top: 5px; padding: 5px 10px; background: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">删除</button>
+                </div>
+            `).join('');
+        }
+
+        function removeCharacter(id) {
+            characters = characters.filter(c => c.id !== id);
+            renderCharacters();
+            if (currentStep >= 3) {
+                renderCanvas();
+            }
+        }
+
+        // 渲染画布
+        function renderCanvas() {
+            const wrapper = document.getElementById('canvasWrapper');
+            
+            if (!videoElement || characters.length === 0) {
+                wrapper.innerHTML = '<div class="empty-state">请先上传视频和添加角色</div>';
+                return;
+            }
+
+            // 设置画布尺寸
+            wrapper.style.width = '100%';
+            wrapper.style.height = '600px';
+            wrapper.style.position = 'relative';
+            wrapper.style.background = '#000';
+
+            // 添加背景图片（第一个角色作为底图）
+            wrapper.innerHTML = '';
+            const bgImg = document.createElement('img');
+            bgImg.src = characters[0].image;
+            bgImg.className = 'background-image';
+            bgImg.style.objectFit = 'cover';
+            wrapper.appendChild(bgImg);
+
+            // 添加视频层
+            if (videoElement) {
+                const videoLayerDiv = document.createElement('div');
+                videoLayerDiv.className = 'video-layer';
+                videoLayerDiv.style.width = '300px';
+                videoLayerDiv.style.height = '200px';
+                videoLayerDiv.style.left = '50%';
+                videoLayerDiv.style.top = '50%';
+                videoLayerDiv.style.transform = 'translate(-50%, -50%)';
+
+                const video = document.createElement('video');
+                video.src = videoElement.src;
+                video.controls = false;
+                video.autoplay = true;
+                video.loop = true;
+                video.muted = true;
+                video.style.width = '100%';
+                video.style.height = '100%';
+                video.style.objectFit = 'contain';
+
+                const resizeHandle = document.createElement('div');
+                resizeHandle.className = 'resize-handle';
+
+                videoLayerDiv.appendChild(video);
+                videoLayerDiv.appendChild(resizeHandle);
+                wrapper.appendChild(videoLayerDiv);
+
+                videoLayer = videoLayerDiv;
+
+                // 拖拽功能
+                videoLayerDiv.addEventListener('mousedown', startDrag);
+                resizeHandle.addEventListener('mousedown', startResize);
+            }
+        }
+
+        // 拖拽功能
+        function startDrag(e) {
+            if (e.target.classList.contains('resize-handle')) return;
+            isDragging = true;
+            const rect = videoLayer.getBoundingClientRect();
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', stopDrag);
+            e.preventDefault();
+        }
+
+        function onDrag(e) {
+            if (!isDragging) return;
+            const wrapper = document.getElementById('canvasWrapper');
+            const wrapperRect = wrapper.getBoundingClientRect();
+            let x = e.clientX - wrapperRect.left - dragOffset.x;
+            let y = e.clientY - wrapperRect.top - dragOffset.y;
+            
+            // 限制在画布内
+            x = Math.max(0, Math.min(x, wrapperRect.width - videoLayer.offsetWidth));
+            y = Math.max(0, Math.min(y, wrapperRect.height - videoLayer.offsetHeight));
+            
+            videoLayer.style.left = x + 'px';
+            videoLayer.style.top = y + 'px';
+            videoLayer.style.transform = 'none';
+        }
+
+        function stopDrag() {
+            isDragging = false;
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        // 缩放功能
+        function startResize(e) {
+            isResizing = true;
+            resizeStartSize.width = videoLayer.offsetWidth;
+            resizeStartSize.height = videoLayer.offsetHeight;
+            resizeStartPos.x = e.clientX;
+            resizeStartPos.y = e.clientY;
+            document.addEventListener('mousemove', onResize);
+            document.addEventListener('mouseup', stopResize);
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function onResize(e) {
+            if (!isResizing) return;
+            const deltaX = e.clientX - resizeStartPos.x;
+            const deltaY = e.clientY - resizeStartPos.y;
+            const newWidth = Math.max(100, resizeStartSize.width + deltaX);
+            const newHeight = Math.max(100, resizeStartSize.height + deltaY);
+            
+            videoLayer.style.width = newWidth + 'px';
+            videoLayer.style.height = newHeight + 'px';
+        }
+
+        function stopResize() {
+            isResizing = false;
+            document.removeEventListener('mousemove', onResize);
+            document.removeEventListener('mouseup', stopResize);
+        }
+
+        // 重置画布
+        function resetCanvas() {
+            if (confirm('确定要重置画布吗？')) {
+                renderCanvas();
+            }
+        }
+
+        // 合成视频
+        async function composeVideo() {
+            if (!videoElement || characters.length === 0) {
+                alert('请先上传视频和添加角色！');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const composeBtn = document.getElementById('composeBtn');
+            loading.classList.add('active');
+            composeBtn.disabled = true;
+
+            try {
+                const canvas = document.createElement('canvas');
+                const wrapper = document.getElementById('canvasWrapper');
+                const wrapperRect = wrapper.getBoundingClientRect();
+                
+                canvas.width = wrapperRect.width;
+                canvas.height = wrapperRect.height;
+                const ctx = canvas.getContext('2d');
+
+                // 获取视频层位置和尺寸
+                const videoLayerRect = videoLayer.getBoundingClientRect();
+                const wrapperBounds = wrapper.getBoundingClientRect();
+                const videoX = videoLayerRect.left - wrapperBounds.left;
+                const videoY = videoLayerRect.top - wrapperBounds.top;
+                const videoWidth = videoLayerRect.width;
+                const videoHeight = videoLayerRect.height;
+
+                // 创建背景图片
+                const bgImg = new Image();
+                bgImg.crossOrigin = 'anonymous';
+                await new Promise((resolve, reject) => {
+                    bgImg.onload = resolve;
+                    bgImg.onerror = reject;
+                    bgImg.src = characters[0].image;
+                });
+                ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+                // 创建视频元素用于录制
+                const video = document.createElement('video');
+                video.src = videoElement.src;
+                video.crossOrigin = 'anonymous';
+                video.muted = true;
+                video.loop = true;
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        video.play();
+                        resolve();
+                    };
+                });
+
+                // 使用 MediaRecorder 录制
+                const stream = canvas.captureStream(30);
+                const recorder = new MediaRecorder(stream, {
+                    mimeType: 'video/webm;codecs=vp9'
+                });
+
+                const chunks = [];
+                recorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) chunks.push(e.data);
+                };
+
+                recorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const resultVideo = document.getElementById('resultVideo');
+                    const downloadLink = document.getElementById('downloadLink');
+                    const resultContainer = document.getElementById('resultContainer');
+                    
+                    resultVideo.src = url;
+                    downloadLink.href = url;
+                    resultContainer.style.display = 'block';
+                    loading.classList.remove('active');
+                    composeBtn.disabled = false;
+                    updateStep(4);
+                };
+
+                // 绘制视频帧
+                const drawFrame = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(video, videoX, videoY, videoWidth, videoHeight);
+                };
+
+                recorder.start();
+                const interval = setInterval(drawFrame, 33); // 30fps
+
+                // 录制视频时长
+                setTimeout(() => {
+                    clearInterval(interval);
+                    recorder.stop();
+                    video.pause();
+                    stream.getTracks().forEach(track => track.stop());
+                }, Math.min(video.duration * 1000, 10000)); // 最多10秒或视频时长
+
+            } catch (error) {
+                console.error('合成视频失败:', error);
+                alert('合成视频失败，请重试。错误: ' + error.message);
+                loading.classList.remove('active');
+                composeBtn.disabled = false;
+            }
+        }
+
+        // 点击模态框外部关闭
+        document.getElementById('characterModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCharacterModal();
+            }
+        });
+    </script>
+</body>
+</html>
